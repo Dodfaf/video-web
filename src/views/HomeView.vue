@@ -71,7 +71,6 @@ const fetchVideos = async (isLoadMore = false) => {
         pageSize: pageSize
       }
     })
-
     if (response.data.success) {
       const newVideos = response.data.data
       if (isLoadMore) {

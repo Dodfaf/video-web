@@ -17,12 +17,37 @@ const pinia = createPinia()
 app.use(router)
 pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
-// 配置响应拦截器
+app.use(ElmentPlus)
 const userStore = useUserStore()
+
+axios.interceptors.request.use(
+  (config) => {
+    const token = userStore.token
+    if (token) {
+      console.log('设置satoken: ' + token) // 调试用
+      config.headers['satoken'] = token // 设置 satoken 头
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+
+// 配置响应拦截器
+
 axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("re"+response) // 调试用
+    if ( response.code === 401) {
+      console.error('Token 过期或无效，请重新登录')
+      userStore.logout()
+      router.push('/login')
+    }  
+    return response
+  },
+  
   (error) => {
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.code === 401) {
       console.error('Token 过期或无效，请重新登录')
       userStore.logout()
       router.push('/login')
@@ -30,5 +55,5 @@ axios.interceptors.response.use(
     return Promise.reject(error)
   }
 )
-app.use(ElmentPlus)
+
 app.mount('#app')
