@@ -28,9 +28,6 @@ import { useUserStore } from '@/stores/user'
 // 获取 userStore
 const userStore = useUserStore()
 
-ElMessage.success("用户id："+userStore.loginId)
-
-
 
 // 定义视频数据接口
 interface Video {

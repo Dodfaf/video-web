@@ -59,25 +59,25 @@ export const useUserStore = defineStore('user', {
     },
     // 退出登录
     async logout() {
-        try {
-            const response = await axios.post('/auth/user/logOut', {
-                params:{
-                    loginId: this.loginId
-                }
-            })
-            if (response.data.success) {
-                this.token = null
-                this.loginId = null
-                this.isLogin = false
-                this.userName = null
-                return true
-            } else {
-              throw new Error('登出失败')
-            }
-          } catch (error) {
-            console.error('登出失败', error)
-            return false
+      try {
+          const response = await axios.post('/auth/user/logOut', {
+              params:{
+                  loginId: this.loginId
+              }
+          })
+          if (response.data.success) {
+              this.token = null
+              this.loginId = null
+              this.isLogin = false
+              this.userName = null
+              return true
+          } else {
+            throw new Error('登出失败')
           }
+        } catch (error) {
+          console.error('登出失败', error)
+          return false
+        }
       
     }
   },

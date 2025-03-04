@@ -8,7 +8,7 @@ import router from './router'
 import { useUserStore } from './stores/user'
 import axios from './axios'
 import 'element-plus/dist/index.css'
-import ElmentPlus from 'element-plus'
+import ElmentPlus, { ElMessage } from 'element-plus'
 
 
 const app = createApp(App)
@@ -37,20 +37,32 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(
   (response) => {
-    console.log("re"+response) // 调试用
-    if ( response.code === 401) {
-      console.error('Token 过期或无效，请重新登录')
-      userStore.logout()
+    console.log("响应数据: ", response.data) // 调试用
+    const { code, message } = response.data
+    if (code === 401) {
+      userStore.loginId = null
+      userStore.userName = null
+      userStore.isLogin = false
+      ElMessage.error("登录过期，请重新登录！")
       router.push('/login')
-    }  
+    }
     return response
   },
   
   (error) => {
-    if (error.response && error.response.code === 401) {
-      console.error('Token 过期或无效，请重新登录')
-      userStore.logout()
-      router.push('/login')
+    // if (error.response && error.response.status === 401) {
+    //   console.error('Token 过期或无效，请重新登录')
+    //   userStore.logout()
+    //   router.push('/login')
+    // }
+    if (error.response) {
+      const { code, message } = error.response.data || {}
+      if (error.response.status === 401 || code === 401) {
+        console.error('Token 过期或无效，请重新登录: ' + (message || error.message))
+        router.push('/login')
+      }
+    } else {
+      console.error('网络错误: ' + error.message)
     }
     return Promise.reject(error)
   }
