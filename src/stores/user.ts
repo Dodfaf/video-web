@@ -8,6 +8,8 @@ interface UserState {
   loginId: string | null
   isLogin: boolean
   userName: string | null
+  avatar: string | null
+  nickName: string | null
 }
 
 export const useUserStore = defineStore('user', {
@@ -15,7 +17,9 @@ export const useUserStore = defineStore('user', {
     token: null,
     loginId: null,
     isLogin: false,
-    userName: null
+    userName: null,
+    avatar: '',
+    nickName: null,
   }),
   actions: {
     // 注册
@@ -25,10 +29,10 @@ export const useUserStore = defineStore('user', {
           userName,
           password
         })
-        if (response.data.success) {
+        if (response.data.data== true) {
           return true
         } else {
-          throw new Error('注册失败')
+          throw new Error('注册失败,用户名已存在！')
         }
       } catch (error) {
         console.error('注册失败', error)
@@ -47,7 +51,12 @@ export const useUserStore = defineStore('user', {
           this.token = tokenValue  // 存储 token
           this.loginId = loginId    // 存储 loginId
           this.isLogin = true
-          this.userName = userName
+          
+          
+          const userinfo = await axios.post('/auth/user/getUserInfo', {id: loginId})
+          const { nickName, avatar } = userinfo.data.data
+          this.avatar = avatar
+          this.nickName = nickName 
           return true
         } else {
           throw new Error('登录失败')
@@ -60,16 +69,13 @@ export const useUserStore = defineStore('user', {
     // 退出登录
     async logout() {
       try {
-          const response = await axios.post('/auth/user/logOut', {
-              params:{
-                  loginId: this.loginId
-              }
-          })
+          const response = await axios.post(`/auth/user/logOut?id=${this.loginId}`)
           if (response.data.success) {
               this.token = null
               this.loginId = null
               this.isLogin = false
               this.userName = null
+              this.avatar = null
               return true
           } else {
             throw new Error('登出失败')

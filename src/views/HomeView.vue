@@ -1,7 +1,8 @@
 <template>
   <div class="home-container">
+    <NavBar></NavBar>
     <div class="video-list">
-      <div v-for="video in videoList" :key="video.id" class="video-card">
+      <div v-for="video in videoList" :key="video.id" class="video-card" @click="goToVideo(video.id)">
         <el-image :src="video.coverUrl" class="video-cover" fit="cover" />
         <div class="video-info">
           <h3 class="video-title">{{ video.videoTitle }}</h3>
@@ -19,17 +20,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '@/axios'
-import { ElImage, ElMessage } from 'element-plus'
+import { ElImage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import NavBar from '@/components/NavBar.vue'
 
 
-// 获取 userStore
-const userStore = useUserStore()
-
-
-// 定义视频数据接口
 interface Video {
   id: number
   videoTitle: string
@@ -46,40 +44,29 @@ interface Video {
   isDeleted: number | null
   duration: number | null
   description: string | null
-  views: number | null
 }
 
-// 状态管理
+const userStore = useUserStore()
+const router = useRouter()
 const videoList = ref<Video[]>([])
 const page = ref(1)
 const pageSize = 10
 const loading = ref(false)
 const hasMore = ref(true)
 
-// 获取视频列表
 const fetchVideos = async (isLoadMore = false) => {
-  if (loading.value || (!isLoadMore && !hasMore.value)) return
+  if (loading.value || (!isLoadMore && !hasMore.value) || !userStore.isLogin) return
 
   loading.value = true
   try {
     const response = await axios.get('/videodisplay/video/getHomePageVideoList', {
-      params: {
-        page: page.value,
-        pageSize: pageSize
-      }
+      params: { page: page.value, pageSize }
     })
     if (response.data.success) {
       const newVideos = response.data.data
-      if (isLoadMore) {
-        videoList.value = [...videoList.value, ...newVideos]
-      } else {
-        videoList.value = newVideos
-      }
-      // 如果返回的视频少于 pageSize，说明没有更多数据
+      videoList.value = isLoadMore ? [...videoList.value, ...newVideos] : newVideos
       hasMore.value = newVideos.length === pageSize
-      if (hasMore.value) page.value++ // 只有在有更多数据时才递增页码
-    } else {
-      console.error('获取视频列表失败:', response.data.message)
+      if (hasMore.value) page.value++
     }
   } catch (error) {
     console.error('请求视频列表出错:', error)
@@ -88,13 +75,15 @@ const fetchVideos = async (isLoadMore = false) => {
   }
 }
 
-// 时间格式化
+const goToVideo = (videoId: number) => {
+  router.push(`/video/vv${videoId}`)
+}
+
 const formatTime = (time: string) => {
   const date = new Date(time)
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
-// 时长格式化（假设 duration 是秒数）
 const formatDuration = (duration: number | null) => {
   if (!duration) return '未知'
   const minutes = Math.floor(duration / 60)
@@ -102,36 +91,38 @@ const formatDuration = (duration: number | null) => {
   return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
 }
 
-// 检查滚动到底部
 const handleScroll = () => {
   const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
   const windowHeight = window.innerHeight
   const scrollHeight = document.documentElement.scrollHeight
   if (scrollTop + windowHeight >= scrollHeight - 50 && hasMore.value && !loading.value) {
-    fetchVideos(true) // 加载更多
+    fetchVideos(true)
   }
 }
 
-// 初始化加载
 onMounted(() => {
-  fetchVideos() // 初次加载
-  window.addEventListener('scroll', handleScroll) // 监听滚动事件
+  if (userStore.isLogin) {
+    fetchVideos()
+    window.addEventListener('scroll', handleScroll)
+  }else{
+    router.push('/login')
+  }
 })
 
-// 清理监听器
-// onUnmounted(() => {
-//   window.removeEventListener('scroll', handleScroll)
-// })
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <style scoped>
 .home-container {
-  padding: 20px;
+  /* padding: 20px; */
+  padding-top: 70px; /* 避免导航栏遮挡 */
 }
 
 .video-list {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 一行5个 */
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px;
 }
 
@@ -141,6 +132,7 @@ onMounted(() => {
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
+  cursor: pointer; /* 增加手型光标 */
 }
 
 .video-card:hover {
