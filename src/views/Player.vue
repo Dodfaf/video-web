@@ -1,7 +1,6 @@
 <template>
   <div class="player-container">
     <NavBar></NavBar>
-    <h1>视频播放</h1>
     <div class="main-content">
       <!-- 左侧：视频和视频信息 -->
       <div class="left-column">
@@ -20,19 +19,39 @@
           <div ref="danmakuContainer" class="danmaku-container"></div>
         </div>
         
-        <div class="video-info" v-if="video">
-          <h2>{{ video.videoTitle }}</h2>
-          <p>作者: {{ video.createBy || '未知' }}   {{ formatTime(video.createTime) }}   时长: {{ formatDuration(video.duration) }}</p>
-          <p>{{ video.description || '暂无简介' }}</p>
-        </div>
-        
-        <div class="danmaku-controls">
-          <el-select v-model="danmakuDensity" placeholder="弹幕密度">
-            <el-option label="正常（不重叠）" value="normal"></el-option>
-            <el-option label="重叠" value="overlap"></el-option>
-          </el-select>
-          <el-input v-model="danmakuInput" placeholder="发送弹幕" @keyup.enter="sendDanmaku"></el-input>
-          <el-button type="primary" @click="sendDanmaku">发送</el-button>
+        <div class="video-info-section" v-if="video">
+          <div class="video-title-row">
+            <h1>{{ video.videoTitle }}</h1>
+            <div class="video-stats">
+              <span class="play-count">播放: 0</span>
+              <span class="danmu-count">弹幕: {{ danmakuList.length }}</span>
+              <span class="publish-time">{{ formatTime(video.createTime) }}</span>
+            </div>
+          </div>
+          
+          <div class="uploader-info">
+            <div class="uploader-avatar">
+              <img src="https://via.placeholder.com/40" alt="用户头像" />
+            </div>
+            <div class="uploader-details">
+              <div class="uploader-name">{{ video.createBy || '未知' }}</div>
+              <div class="uploader-fans">粉丝: 0</div>
+            </div>
+            <el-button type="primary" size="small" class="follow-btn">关注</el-button>
+          </div>
+          
+          <div class="video-description">
+            <p>{{ video.description || '暂无简介' }}</p>
+          </div>
+          
+          <div class="danmaku-controls">
+            <el-select v-model="danmakuDensity" placeholder="弹幕密度" size="small">
+              <el-option label="正常（不重叠）" value="normal"></el-option>
+              <el-option label="重叠" value="overlap"></el-option>
+            </el-select>
+            <el-input v-model="danmakuInput" placeholder="发送弹幕" @keyup.enter="sendDanmaku"></el-input>
+            <el-button type="primary" @click="sendDanmaku">发送</el-button>
+          </div>
         </div>
       </div>
       
@@ -48,7 +67,7 @@
           </div>
           <div class="danmu-content" v-show="isDanmuExpanded">
             <div class="sort-options">
-              <el-radio-group v-model="sortBy" @change="sortDanmuList">
+              <el-radio-group v-model="sortBy" @change="sortDanmuList" size="small">
                 <el-radio label="sendTime">按弹幕时间</el-radio>
                 <el-radio label="createTime">按创建时间</el-radio>
               </el-radio-group>
@@ -67,11 +86,19 @@
         <!-- 推荐视频区域 -->
         <div class="recommended-videos">
           <h3>推荐视频</h3>
-          <div class="video-preview">
-            <img src="https://via.placeholder.com/300x180?text=推荐视频预览" alt="推荐视频预览" />
-            <div class="video-preview-info">
-              <p class="video-preview-title">示例推荐视频标题</p>
-              <p class="video-preview-author">作者: 示例用户</p>
+          <div class="video-preview-list">
+            <div class="video-preview" v-for="i in 5" :key="i">
+              <div class="video-preview-img">
+                <img src="https://via.placeholder.com/160x90" alt="视频预览" />
+                <span class="video-duration">03:45</span>
+              </div>
+              <div class="video-preview-info">
+                <p class="video-preview-title">示例推荐视频标题{{ i }}</p>
+                <p class="video-preview-stats">
+                  <span class="preview-uploader">UP主名称</span>
+                  <span class="preview-views">播放: 1.2万</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -80,6 +107,9 @@
     <div v-if="!video" class="loading">加载中...</div>
   </div>
 </template>
+
+<!-- script部分保持不变 -->
+
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
@@ -352,11 +382,17 @@ onUnmounted(() => {
 })
 </script>
 
+
+
+
 <style scoped>
 .player-container {
   padding: 20px;
+  padding-top: 60px;
   max-width: 1400px;
   margin: 0 auto;
+  background-color: #fff;
+  color: #333;
 }
 
 /* 主内容区域 - 左右布局 */
@@ -375,7 +411,7 @@ onUnmounted(() => {
 
 /* 右侧列 - 弹幕列表和推荐视频 */
 .right-column {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -385,12 +421,13 @@ onUnmounted(() => {
 .video-wrapper {
   position: relative;
   width: 100%;
+  background-color: #000;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .video-element {
   width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   aspect-ratio: 16 / 9;
   background-color: #000;
 }
@@ -413,21 +450,80 @@ onUnmounted(() => {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.video-info {
+/* 视频信息区域 - B站风格 */
+.video-info-section {
   margin-top: 20px;
   text-align: left;
   width: 100%;
+  border-bottom: 1px solid #e5e9ef;
+  padding-bottom: 20px;
 }
 
-.video-info h2 {
-  font-size: 24px;
-  margin: 0 0 10px;
+.video-title-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
 }
 
-.video-info p {
-  font-size: 16px;
-  color: #666;
-  margin: 5px 0;
+.video-title-row h1 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #212121;
+  margin: 0 0 10px 0;
+}
+
+.video-stats {
+  display: flex;
+  gap: 15px;
+  color: #9499a0;
+  font-size: 13px;
+}
+
+.uploader-info {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.uploader-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+}
+
+.uploader-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploader-details {
+  flex: 1;
+}
+
+.uploader-name {
+  font-size: 14px;
+  color: #18191c;
+  font-weight: 500;
+}
+
+.uploader-fans {
+  font-size: 12px;
+  color: #9499a0;
+}
+
+.follow-btn {
+  margin-left: 15px;
+}
+
+.video-description {
+  font-size: 14px;
+  color: #61666d;
+  line-height: 1.5;
+  margin: 15px 0;
+  white-space: pre-wrap;
 }
 
 .danmaku-controls {
@@ -435,24 +531,27 @@ onUnmounted(() => {
   display: flex;
   gap: 10px;
   width: 100%;
+  align-items: center;
 }
 
 .loading {
   text-align: center;
   font-size: 18px;
   color: #999;
+  padding: 100px 0;
 }
 
 /* 弹幕面板样式 - 可折叠 */
 .danmu-panel {
   width: 100%;
   background: #f5f7fa;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
-  border: 1px solid #e8e8e8;
+  border: 1px solid #e5e9ef;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  margin-bottom: 20px;
 }
 
 .danmu-collapsed {
@@ -464,10 +563,12 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background: #e6e9ef;
+  background: #f4f5f7;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid #dcdfe6;
+  border-bottom: 1px solid #e5e9ef;
+  font-size: 14px;
+  color: #222;
 }
 
 .rotate-180 {
@@ -476,7 +577,7 @@ onUnmounted(() => {
 }
 
 .danmu-content {
-  max-height: 400px;
+  max-height: 300px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -485,97 +586,139 @@ onUnmounted(() => {
 
 .sort-options {
   padding: 10px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e5e9ef;
 }
 
 .danmu-list {
   flex: 1;
   overflow-y: auto;
   padding: 0 10px;
-  max-height: 350px;
+  max-height: 250px;
 }
 
 .danmu-item {
   display: flex;
   flex-direction: column;
   padding: 8px 0;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e5e9ef;
 }
 
 .danmu-time {
   font-size: 12px;
-  color: #409eff;
+  color: #00a1d6;
 }
 
 .danmu-content-text {
   font-size: 14px;
   margin: 4px 0;
   word-break: break-all;
+  color: #212121;
 }
 
 .danmu-create-time {
   font-size: 12px;
-  color: #999;
+  color: #9499a0;
 }
 
 .no-danmu {
   text-align: center;
-  color: #999;
+  color: #9499a0;
   padding: 20px;
 }
 
-/* 推荐视频区域 */
+/* 推荐视频区域 - B站风格 */
 .recommended-videos {
-  margin-top: 10px;
+  width: 100%;
 }
 
 .recommended-videos h3 {
-  font-size: 18px;
+  font-size: 16px;
   margin-bottom: 15px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
+  color: #212121;
+  font-weight: 500;
+}
+
+.video-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .video-preview {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
 }
 
-.video-preview img {
+.video-preview:hover .video-preview-title {
+  color: #00a1d6;
+}
+
+.video-preview-img {
+  position: relative;
+  width: 160px;
+  height: 90px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.video-preview-img img {
   width: 100%;
-  display: block;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-duration {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 12px;
+  padding: 0 4px;
+  border-radius: 2px;
 }
 
 .video-preview-info {
-  padding: 10px;
-  background: #f9f9f9;
+  flex: 1;
+  min-width: 0;
 }
 
 .video-preview-title {
   font-size: 14px;
-  font-weight: bold;
-  margin: 0 0 5px;
+  font-weight: normal;
+  margin: 0 0 8px;
+  color: #212121;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s;
 }
 
-.video-preview-author {
+.video-preview-stats {
   font-size: 12px;
-  color: #666;
-  margin: 0;
+  color: #9499a0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 /* 添加滚动条样式 */
 .danmu-list::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .danmu-list::-webkit-scrollbar-thumb {
-  background-color: #c0c4cc;
-  border-radius: 3px;
+  background-color: #c9ccd0;
+  border-radius: 2px;
 }
 
 .danmu-list::-webkit-scrollbar-track {
-  background-color: #f5f7fa;
+  background-color: #f6f7f8;
 }
 </style>
