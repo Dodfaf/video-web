@@ -50,11 +50,6 @@ axios.interceptors.response.use(
   },
   
   (error) => {
-    // if (error.response && error.response.status === 401) {
-    //   console.error('Token 过期或无效，请重新登录')
-    //   userStore.logout()
-    //   router.push('/login')
-    // }
     if (error.response) {
       const { code, message } = error.response.data || {}
       if (error.response.status === 401 || code === 401) {
