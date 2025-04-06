@@ -46,6 +46,7 @@ import axios from '@/axios'
 import { ElMessage } from 'element-plus'
 import NavBar from '@/components/NavBar.vue'
 import VideoComment from '@/components/VideoComment.vue'
+import type { Video, Uploader } from '@/types/Video'
 
 // 导入拆分后的组件
 import VideoPlayerComponent from '@/components/player/VideoPlayerComponent.vue'
@@ -56,36 +57,6 @@ import RecommendedVideosComponent from '@/components/player/RecommendedVideosCom
 
 
 // 接口定义
-interface Video {
-  id: number
-  videoTitle: string
-  upId: number
-  videoUrl: string
-  status: number
-  coverUrl: string
-  likes: number
-  favorites: number
-  createBy: string | null
-  createTime: string
-  updateBy: string | null
-  updateTime: string | null
-  isDeleted: number | null
-  duration: number | null
-  description: string | null
-}
-// 添加UP主信息接口
-interface Uploader {
-  id: number
-  userName: string
-  status: number
-  avatar: string
-  nickName: string
-  email: string | null
-  phone: string | null
-  password: string
-  sex: number
-  introduce: string
-}
 interface Danmaku {
   id: number
   userId: number

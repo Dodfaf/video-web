@@ -38,19 +38,21 @@
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue'
 import { ElSelect, ElOption, ElInput, ElButton } from 'element-plus'
+import type { Video, Uploader } from '@/types/Video'
 
-const props = defineProps({
-  video: Object,
+
+const props = defineProps<{
+  video: Video,
   danmakuCount: Number,
-  uploader: Object // 添加UP主信息属性
-})
+  uploader: Uploader // 添加UP主信息属性
+}>()
 
 const emit = defineEmits(['send-danmaku', 'density-change'])
 
 const danmakuInput = ref('')
 const danmakuDensity = ref('normal')
 
-const formatTime = (time) => {
+const formatTime = (time: string | number | Date) => {
   const date = new Date(time)
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
