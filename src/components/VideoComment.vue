@@ -26,74 +26,96 @@
       </div>
       
       <div v-for="moment in momentList" :key="moment.id" class="comment-item">
-        <div class="comment-user">
-          <el-avatar :size="40" :src="moment.userAvatar || moment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
-          <div class="user-info">
-            <div class="username">{{ moment.userName }}</div>
-            <div class="comment-time">{{ formatTime(moment.createdTime) }}</div>
+  <div class="comment-layout">
+    <div class="avatar-container">
+      <el-avatar :size="40" :src="moment.userAvatar || moment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
+    </div>
+    <div class="comment-right">
+      <div class="username">{{ moment.userName }}</div>
+      <div class="comment-content">{{ moment.content }}</div>
+      <div class="comment-footer">
+        <span class="comment-time">{{ formatTime(moment.createdTime) }}</span>
+        <span class="reply-btn" @click="showReplyInput(moment.id)">回复</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 回复列表 -->
+  <div class="reply-list" v-if="moment.comments && moment.comments.length > 0">
+    <div v-for="comment in moment.comments" :key="comment.id" class="reply-item">
+      <div class="comment-layout">
+        <div class="avatar-container">
+          <el-avatar :size="30" :src="comment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
+        </div>
+        <div class="comment-right">
+          <div class="username">
+            {{ comment.userName || '用户' }} 
+            <span class="reply-to" v-if="comment.targetUserName">回复 {{ comment.targetUserName }}</span>
           </div>
-        </div>
-        <div class="comment-content">{{ moment.content }}</div>
-        
-        <!-- 回复列表 -->
-        <div class="reply-list" v-if="moment.comments && moment.comments.length > 0">
-          <div v-for="comment in moment.comments" :key="comment.id" class="reply-item">
-            <div class="reply-user">
-              <el-avatar :size="30" :src="comment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
-              <div class="user-info">
-                <div class="username">
-                  {{ comment.userName || '用户' }} 
-                  <span class="reply-to" v-if="comment.targetUserName">回复 {{ comment.targetUserName }}</span>
-                </div>
-                <div class="comment-time">{{ formatTime(comment.createdTime) }}</div>
-              </div>
-            </div>
-            <div class="reply-content">{{ comment.content }}</div>
-            <div class="reply-actions">
-              <span class="reply-btn" @click="handleReplyToComment(comment)">回复</span>
-            </div>
-            
-            <!-- 子评论 -->
-            <div class="nested-replies" v-if="comment.children && comment.children.length > 0">
-              <div v-for="childComment in comment.children" :key="childComment.id" class="nested-reply-item">
-                <div class="reply-user">
-                  <el-avatar :size="30" :src="childComment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
-                  <div class="user-info">
-                    <div class="username">
-                      {{ childComment.userName || '用户' }} 
-                      <span class="reply-to" v-if="childComment.targetUserName">回复 {{ childComment.targetUserName }}</span>
-                    </div>
-                    <div class="comment-time">{{ formatTime(childComment.createdTime) }}</div>
-                  </div>
-                </div>
-                <div class="reply-content">{{ childComment.content }}</div>
-                <div class="reply-actions">
-                  <span class="reply-btn" @click="handleReplyToComment(childComment)">回复</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 回复输入框 -->
-        <div class="reply-actions">
-          <span class="reply-btn" @click="showReplyInput(moment.id)">回复</span>
-        </div>
-        <div v-if="activeReplyId === moment.id && activeReplyType === 'moment'" class="reply-input">
-          <el-input
-            v-model="replyContent"
-            type="textarea"
-            :rows="2"
-            placeholder="回复评论..."
-            maxlength="200"
-            show-word-limit
-          ></el-input>
-          <div class="reply-input-actions">
-            <el-button size="small" @click="cancelReply">取消</el-button>
-            <el-button size="small" type="primary" @click="submitComment(moment.id)" :disabled="!replyContent.trim()">回复</el-button>
+          <div class="comment-content">{{ comment.content }}</div>
+          <div class="comment-footer">
+            <span class="comment-time">{{ formatTime(comment.createdTime) }}</span>
+            <span class="reply-btn" @click="handleReplyToComment(comment)">回复</span>
           </div>
         </div>
       </div>
+      
+      <!-- 子评论 -->
+      <div class="nested-replies" v-if="comment.children && comment.children.length > 0">
+        <div v-for="childComment in comment.children" :key="childComment.id" class="nested-reply-item">
+          <div class="comment-layout">
+            <div class="avatar-container">
+              <el-avatar :size="30" :src="childComment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
+            </div>
+            <div class="comment-right">
+              <div class="username">
+                {{ childComment.userName || '用户' }} 
+                <span class="reply-to" v-if="childComment.targetUserName">回复 {{ childComment.targetUserName }}</span>
+              </div>
+              <div class="comment-content">{{ childComment.content }}</div>
+              <div class="comment-footer">
+                <span class="comment-time">{{ formatTime(childComment.createdTime) }}</span>
+                <span class="reply-btn" @click="handleReplyToComment(childComment)">回复</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 回复输入框 - 对moment的回复 -->
+  <div v-if="activeReplyId === moment.id && activeReplyType === 'moment'" class="reply-input">
+    <el-input
+      v-model="replyContent"
+      type="textarea"
+      :rows="2"
+      placeholder="回复评论..."
+      maxlength="200"
+      show-word-limit
+    ></el-input>
+    <div class="reply-input-actions">
+      <el-button size="small" @click="cancelReply">取消</el-button>
+      <el-button size="small" type="primary" @click="submitComment(moment.id)" :disabled="!replyContent.trim()">回复</el-button>
+    </div>
+  </div>
+  
+  <!-- 回复输入框 - 对comment的回复 -->
+  <div v-if="activeReplyId === moment.id && activeReplyType === 'comment'" class="reply-input">
+    <el-input
+      v-model="replyContent"
+      type="textarea"
+      :rows="2"
+      :placeholder="`回复 ${targetComment ? targetComment.userName : ''}...`"
+      maxlength="200"
+      show-word-limit
+    ></el-input>
+    <div class="reply-input-actions">
+      <el-button size="small" @click="cancelReply">取消</el-button>
+      <el-button size="small" type="primary" @click="submitComment(moment.id)" :disabled="!replyContent.trim()">回复</el-button>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 </template>
@@ -239,7 +261,7 @@ export default {
         const response = await axios.post('/comment/share/comment/list', {
           id: momentId
         });
-        console.log(momentId,"子评论列表：",response.data.data);
+        // console.log(momentId,"子评论列表：",response.data.data);
         if (response.data.code === 200) {
           // 找到对应的moment并添加comments属性
           const moment = momentList.value.find(m => m.id === momentId);
@@ -288,13 +310,14 @@ export default {
       replyContent.value = '';
     };
 
-    // 处理回复评论（回复comment）
-    const handleReplyToComment = (comment) => {
-      activeReplyId.value = comment.momentId;
-      activeReplyType.value = 'comment';
-      targetComment.value = comment;
-      replyContent.value = '';
-    };
+// 处理回复评论（回复comment）
+const handleReplyToComment = (comment) => {
+  console.log('回复评论:', comment);
+  activeReplyId.value = comment.momentId;
+  activeReplyType.value = 'comment';
+  targetComment.value = comment;
+  replyContent.value = '';
+};
 
     // 取消回复
     const cancelReply = () => {
@@ -304,47 +327,49 @@ export default {
       replyContent.value = '';
     };
 
-    // 提交评论（对moment的回复）
-    const submitComment = async (momentId) => {
-      if (!replyContent.value.trim()) return;
-      
-      try {
-        const requestData = {
-          momentId: momentId,
-          content: replyContent.value,
-          picUrlList: []
-        };
-
-        // 根据回复类型设置不同的参数
-        if (activeReplyType.value === 'moment') {
-          // 回复moment
-          requestData.replyType = 1;
-          requestData.parentId = -1;
-        } else if (activeReplyType.value === 'comment' && targetComment.value) {
-          // 回复comment
-          requestData.replyType = 2;
-          requestData.parentId = targetComment.value.id;
-          requestData.targetId = targetComment.value.fromId || targetComment.value.id;
-        }
-
-        const response = await axios.post('/comment/share/comment/save', requestData);
-        
-        if (response.data.code === 200) {
-          ElMessage.success('回复成功');
-          replyContent.value = '';
-          activeReplyId.value = null;
-          activeReplyType.value = null;
-          targetComment.value = null;
-          getComments(momentId); // 重新获取该moment下的评论
-        }
-      } catch (error) {
-        console.error('回复评论失败:', error);
-        if (error.response) {
-          console.error('错误响应数据:', error.response.data);
-        }
-        ElMessage.error('回复失败，请稍后重试');
-      }
+// 提交评论（对moment的回复）
+const submitComment = async (momentId) => {
+  if (!replyContent.value.trim()) return;
+  
+  try {
+    const requestData = {
+      momentId: momentId,
+      content: replyContent.value,
+      picUrlList: []
     };
+
+    // 根据回复类型设置不同的参数
+    if (activeReplyType.value === 'moment') {
+      // 回复moment
+      requestData.replyType = 1;
+      // requestData.parentId = -1;
+    } else if (activeReplyType.value === 'comment' && targetComment.value) {
+      // 回复comment
+      requestData.replyType = 2;
+      // requestData.parentId = targetComment.value.id;
+      // 添加targetId字段
+      requestData.targetId = targetComment.value.id || targetComment.value.userId  ;
+      console.log('回复评论请求数据:', requestData, targetComment.value);
+    }
+
+    const response = await axios.post('/comment/share/comment/save', requestData);
+    
+    if (response.data.code === 200) {
+      ElMessage.success('回复成功');
+      replyContent.value = '';
+      activeReplyId.value = null;
+      activeReplyType.value = null;
+      targetComment.value = null;
+      getComments(momentId); // 重新获取该moment下的评论
+    }
+  } catch (error) {
+    console.error('回复评论失败:', error);
+    if (error.response) {
+      console.error('错误响应数据:', error.response.data);
+    }
+    ElMessage.error('回复失败，请稍后重试');
+  }
+};
 
     // 格式化时间
     const formatTime = (timeStr) => {
@@ -376,8 +401,8 @@ export default {
     };
 
     onMounted(() => {
-      console.log('VideoComment 组件挂载，videoId:', props.videoId);
-      console.log('当前用户 token:', userStore.token);
+      // console.log('VideoComment 组件挂载，videoId:', props.videoId);
+      // console.log('当前用户 token:', userStore.token);
       if (props.videoId) {
         getMoments();
       }
@@ -400,7 +425,6 @@ export default {
   }
 }
 </script>
-
 <style scoped>
 .comment-container {
   margin-top: 20px;
@@ -442,31 +466,52 @@ export default {
   border-bottom: 1px solid #eee;
 }
 
-.comment-user, .reply-user {
+.comment-layout {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.user-info {
-  margin-left: 10px;
+.avatar-container {
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.comment-right {
+  flex-grow: 1;
 }
 
 .username {
   font-weight: bold;
   font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.comment-content {
+  line-height: 1.5;
+  margin-bottom: 5px;
+  word-break: break-all;
+}
+
+.comment-footer {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #999;
 }
 
 .comment-time {
-  font-size: 12px;
-  color: #999;
-  margin-top: 2px;
+  margin-right: 15px;
 }
 
-.comment-content, .reply-content {
-  margin-left: 50px;
-  margin-bottom: 10px;
-  line-height: 1.5;
+.reply-btn {
+  color: #409EFF;
+  cursor: pointer;
+}
+
+.reply-to {
+  color: #409EFF;
+  font-weight: normal;
+  margin-left: 5px;
 }
 
 .reply-list {
@@ -483,27 +528,6 @@ export default {
 
 .reply-item:last-child {
   border-bottom: none;
-}
-
-.reply-to {
-  color: #409EFF;
-  font-weight: normal;
-  margin-left: 5px;
-}
-
-.reply-content {
-  margin-left: 40px;
-}
-
-.reply-actions {
-  margin-left: 50px;
-  margin-top: 5px;
-}
-
-.reply-btn {
-  color: #409EFF;
-  cursor: pointer;
-  font-size: 13px;
 }
 
 .reply-input {
