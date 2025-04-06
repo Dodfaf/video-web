@@ -133,11 +133,7 @@ export default {
     const getComments = async (momentId) => {
       try {
         const response = await axios.post('/comment/share/comment/list', {
-          id: momentId,
-          pageInfo: {
-            pageNo: 1,
-            pageSize: 20
-          }
+          id: momentId
         });
         
         if (response.data.code === 200) {
@@ -201,7 +197,8 @@ export default {
           replyType: 1, // 对moment的回复
           momentId: momentId,
           content: replyContent.value,
-          picUrlList: []
+          picUrlList: [],
+          targetId: momentId
         });
         
         if (response.data.code === 200) {
