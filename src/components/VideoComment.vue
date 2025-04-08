@@ -40,49 +40,28 @@
     </div>
   </div>
   
-  <!-- 回复列表 -->
-  <div class="reply-list" v-if="moment.comments && moment.comments.length > 0">
-    <div v-for="comment in moment.comments" :key="comment.id" class="reply-item">
-      <div class="comment-layout">
-        <div class="avatar-container">
-          <el-avatar :size="30" :src="comment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
-        </div>
-        <div class="comment-right">
-          <div class="username">
-            {{ comment.userName || '用户' }} 
-            <span class="reply-to" v-if="comment.targetUserName">回复 {{ comment.targetUserName }}</span>
-          </div>
-          <div class="comment-content">{{ comment.content }}</div>
-          <div class="comment-footer">
-            <span class="comment-time">{{ formatTime(comment.createdTime) }}</span>
-            <span class="reply-btn" @click="handleReplyToComment(comment)">回复</span>
-          </div>
-        </div>
+<!-- 回复列表 -->
+<div class="reply-list" v-if="moment.comments && moment.comments.length > 0">
+  <div v-for="comment in flattenComments(moment.comments)" :key="comment.id" class="reply-item">
+    <div class="comment-layout">
+      <div class="avatar-container">
+        <el-avatar :size="30" :src="comment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
       </div>
-      
-      <!-- 子评论 -->
-      <div class="nested-replies" v-if="comment.children && comment.children.length > 0">
-        <div v-for="childComment in comment.children" :key="childComment.id" class="nested-reply-item">
-          <div class="comment-layout">
-            <div class="avatar-container">
-              <el-avatar :size="30" :src="childComment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
-            </div>
-            <div class="comment-right">
-              <div class="username">
-                {{ childComment.userName || '用户' }} 
-                <span class="reply-to" v-if="childComment.targetUserName">回复 {{ childComment.targetUserName }}</span>
-              </div>
-              <div class="comment-content">{{ childComment.content }}</div>
-              <div class="comment-footer">
-                <span class="comment-time">{{ formatTime(childComment.createdTime) }}</span>
-                <span class="reply-btn" @click="handleReplyToComment(childComment)">回复</span>
-              </div>
-            </div>
-          </div>
+      <div class="comment-right">
+        <div class="username">
+          {{ comment.userName || '用户' }} 
+          <span class="reply-to-text" v-if="comment.targetUserName">回复</span>&nbsp;
+          <span class="reply-to-name" v-if="comment.targetUserName">{{ comment.targetUserName }}</span>
+        </div>
+        <div class="comment-content">{{ comment.content }}</div>
+        <div class="comment-footer">
+          <span class="comment-time">{{ formatTime(comment.createdTime) }}</span>
+          <span class="reply-btn" @click="handleReplyToComment(comment)">回复</span>
         </div>
       </div>
     </div>
   </div>
+</div>
   
   <!-- 回复输入框 - 对moment的回复 -->
   <div v-if="activeReplyId === moment.id && activeReplyType === 'moment'" class="reply-input">
@@ -120,7 +99,7 @@
   </div>
 </template>
 
-<script>
+<script >
 import { ref, onMounted, defineComponent } from 'vue';
 import { ElMessage } from 'element-plus';
 import axios from '@/axios';
@@ -261,7 +240,6 @@ export default {
         const response = await axios.post('/comment/share/comment/list', {
           id: momentId
         });
-        // console.log(momentId,"子评论列表：",response.data.data);
         if (response.data.code === 200) {
           // 找到对应的moment并添加comments属性
           const moment = momentList.value.find(m => m.id === momentId);
@@ -312,7 +290,6 @@ export default {
 
 // 处理回复评论（回复comment）
 const handleReplyToComment = (comment) => {
-  console.log('回复评论:', comment);
   activeReplyId.value = comment.momentId;
   activeReplyType.value = 'comment';
   targetComment.value = comment;
@@ -326,7 +303,35 @@ const handleReplyToComment = (comment) => {
       targetComment.value = null;
       replyContent.value = '';
     };
-
+// 将嵌套的评论树结构扁平化
+const flattenComments = (comments) => {
+  if (!comments || !comments.length) return [];
+  
+  let result = [];
+  
+  for (const comment of comments) {
+    // 添加当前评论
+    result.push(comment);
+    
+    // 如果有子评论，递归添加
+    if (comment.children && comment.children.length > 0) {
+      // 确保子评论有正确的 targetUserName
+      comment.children.forEach(child => {
+        if (!child.targetUserName && comment.userName) {
+          child.targetUserName = comment.userName;
+        }
+        // 确保子评论有 momentId
+        if (!child.momentId && comment.momentId) {
+          child.momentId = comment.momentId;
+        }
+      });
+      
+      result = result.concat(flattenComments(comment.children));
+    }
+  }
+  
+  return result;
+};
 // 提交评论（对moment的回复）
 const submitComment = async (momentId) => {
   if (!replyContent.value.trim()) return;
@@ -349,7 +354,6 @@ const submitComment = async (momentId) => {
       // requestData.parentId = targetComment.value.id;
       // 添加targetId字段
       requestData.targetId = targetComment.value.id || targetComment.value.userId  ;
-      console.log('回复评论请求数据:', requestData, targetComment.value);
     }
 
     const response = await axios.post('/comment/share/comment/save', requestData);
@@ -401,8 +405,6 @@ const submitComment = async (momentId) => {
     };
 
     onMounted(() => {
-      // console.log('VideoComment 组件挂载，videoId:', props.videoId);
-      // console.log('当前用户 token:', userStore.token);
       if (props.videoId) {
         getMoments();
       }
@@ -420,7 +422,8 @@ const submitComment = async (momentId) => {
       showReplyInput,
       handleReplyToComment,
       cancelReply,
-      formatTime
+      formatTime,
+      flattenComments
     };
   }
 }
@@ -506,6 +509,17 @@ const submitComment = async (momentId) => {
 .reply-btn {
   color: #409EFF;
   cursor: pointer;
+}
+
+.reply-to-text {
+  color: #333;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.reply-to-name {
+  color: #409EFF;
+  font-weight: normal;
 }
 
 .reply-to {
