@@ -14,10 +14,14 @@
         <img :src="uploader?.avatar || 'https://via.placeholder.com/40'" alt="用户头像" />
       </div>
       <div class="uploader-details">
-        <div class="uploader-name">{{ uploader?.nickName || video.createBy || '未知' }}</div>
+        <div class="uploader-name">{{ uploader?.nickName || video.createBy || '未知' }}
+          &nbsp;
+           <el-button type="primary" size="small" class="follow-btn">关注</el-button>
+        </div>
+        
         <div class="uploader-fans">粉丝: 0</div>
       </div>
-      <el-button type="primary" size="small" class="follow-btn">关注</el-button>
+     
     </div>
     
     <div class="video-description">
