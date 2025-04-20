@@ -24,7 +24,6 @@ axios.interceptors.request.use(
   (config) => {
     const token = userStore.token
     if (token) {
-      console.log('设置satoken: ' + token) // 调试用
       config.headers['satoken'] = token // 设置 satoken 头
     }
     return config
@@ -37,7 +36,6 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(
   (response) => {
-    console.log("响应数据: ", response.data) // 调试用
     const { code, message } = response.data
     if (code === 401) {
       userStore.loginId = null

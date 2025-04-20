@@ -9,7 +9,9 @@
       <div class="navbar-center">
         <el-input v-model="searchQuery" placeholder="搜索视频..." @keyup.enter="handleSearch">
           <template #append>
-            <el-button icon="el-icon-search" @click="handleSearch" />
+            <el-button  @click="handleSearch" > 
+              <img src="/src/assets/search.svg" alt="search" style="width: 20px; height: 20px;" />
+            </el-button>
           </template>
         </el-input>
       </div>
@@ -24,6 +26,7 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="my_video">个人视频</el-dropdown-item>
+              <el-dropdown-item command="collection">我的收藏夹</el-dropdown-item>
               <el-dropdown-item command="profile">个人信息</el-dropdown-item>
               <el-dropdown-item command="logout">登出</el-dropdown-item>
             </el-dropdown-menu>
@@ -48,7 +51,7 @@
   const searchQuery = ref('')
   
   // 头像 URL（假设从 userStore 获取，若无则用默认值）
-  const avatarUrl = ref(userStore.avatar || 'http://192.168.10.135:9000/avatars/Honkai%20%20Star%20Rail%20Screenshot%202024.07.31%20-%2015.29.50.75.png')
+  const avatarUrl = ref(userStore.avatar || 'http://192.168.10.135:9000/avatars/头像 (1750).png')
   
   // 跳转到首页
   const goToHome = () => {
@@ -73,9 +76,10 @@
   const handleDropdownCommand = async (command: string) => {
     if (command === 'profile') {
       router.push('/profile') // 假设个人信息页面为 /profile
-    }else if(command === 'my_video'){
+    } else if (command === 'my_video') {
         router.push('/my_videos')
-
+    } else if (command === 'collection') {
+        router.push('/collection')
     } else if (command === 'logout') {
       try {
         // const loginId = userStore.loginId

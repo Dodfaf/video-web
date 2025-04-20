@@ -5,6 +5,9 @@ import Upload from '@/views/Upload.vue'
 import Admin from '@/views/Admin.vue'
 import MyVideos from '@/views/MyVideos.vue'
 import SearchResults from '@/views/SearchResults.vue'
+import Collection from '@/views/CollectionView.vue'
+import UserProfile from '@/views/UserProfile.vue'
+import UserManagement from '@/views/UserManagement.vue'
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -18,7 +21,10 @@ const routes = [
   { path: '/upload', name: 'Upload', component: Upload },
   { path: '/admin', name: 'Admin', component: Admin },
   { path: '/my_videos', name: 'MyVideos', component: MyVideos },
-  { path: '/search', name: 'SearchResults', component: SearchResults }
+  { path: '/search', name: 'SearchResults', component: SearchResults },
+  { path: '/collection', name: 'Collection', component: Collection },
+  { path: '/profile', name: 'UserProfile', component: UserProfile },
+  { path: '/user-management', name: 'UserManagement', component: UserManagement }
 ]
 
 const router = createRouter({

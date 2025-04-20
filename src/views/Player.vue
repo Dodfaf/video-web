@@ -12,6 +12,12 @@
           @update-active-danmaku="updateActiveDanmaku"
         />
         
+        <!-- 视频操作按钮区域 -->
+        <div class="video-actions" v-if="videoId">
+          <LikeButton :video-id="videoId" @like-updated="handleLikeUpdated" />
+          <CollectionButton :video-id="videoId" @collection-updated="handleCollectionUpdated" />
+        </div>
+        
         <VideoInfoComponent 
           v-if="video" 
           :video="video" 
@@ -31,7 +37,7 @@
       <!-- 右侧：弹幕列表和推荐视频 -->
       <div class="right-column">
         <DanmakuPanelComponent :danmakuList="danmakuList" />
-        <RecommendedVideosComponent />
+        <!-- <RecommendedVideosComponent /> -->
       </div>
     </div>
     <div v-if="!video" class="loading">加载中...</div>
@@ -47,12 +53,14 @@ import { ElMessage } from 'element-plus'
 import NavBar from '@/components/NavBar.vue'
 import VideoComment from '@/components/VideoComment.vue'
 import type { Video, Uploader } from '@/types/Video'
-
+import { useUserStore } from '@/stores/user'
 // 导入拆分后的组件
 import VideoPlayerComponent from '@/components/player/VideoPlayerComponent.vue'
 import VideoInfoComponent from '@/components/player/VideoInfoComponent.vue'
 import DanmakuPanelComponent from '@/components/player/DanmakuPanelComponent.vue'
 import RecommendedVideosComponent from '@/components/player/RecommendedVideosComponent.vue'
+import CollectionButton from '@/components/player/CollectionButton.vue'
+import LikeButton from '@/components/player/LikeButton.vue'
 
 
 
@@ -79,7 +87,7 @@ const videoPlayerRef = ref(null)
 let socket: WebSocket | null = null
 const activeDanmaku = ref<Map<number, { element: HTMLElement; animation: Animation }>>(new Map())
 
-
+const userStore = useUserStore()
 // 添加UP主信息
 const uploader = ref<Uploader | null>(null)
 
@@ -150,6 +158,7 @@ const setupWebSocket = (videoId: number) => {
   socket.onerror = (error) => console.error('WebSocket 错误:', error)
 }
 
+//发送弹幕
 const handleSendDanmaku = (content: string) => {
   if (!content || !socket || socket.readyState !== WebSocket.OPEN) return
   
@@ -163,7 +172,7 @@ const handleSendDanmaku = (content: string) => {
     color: '#ffffff',
     position: 'scroll',
     type: 0,
-    createBy: 'user',
+    createBy: userStore.loginId,
     createTime: new Date().toISOString()
   }
   socket.send(JSON.stringify(danmaku))
@@ -189,9 +198,20 @@ onMounted(() => {
 onUnmounted(() => {
   if (socket) socket.close()
 })
+// 处理点赞更新事件
+const handleLikeUpdated = (isLiked: boolean) => {
+  console.log('视频点赞状态已更新:', isLiked)
+  // 可以在这里添加一些逻辑，比如刷新视频信息等
+}
+
+// 处理收藏更新事件
+const handleCollectionUpdated = () => {
+  console.log('视频收藏状态已更新')
+  // 可以在这里添加一些逻辑，比如刷新视频信息等
+}
 </script>
 
-<style>
+<style scoped>
 .player-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -227,5 +247,12 @@ onUnmounted(() => {
 .video-comment-section {
   margin-top: 20px;
   width: 100%;
+}
+
+.video-actions {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+  align-items: center;
 }
 </style>

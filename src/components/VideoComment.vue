@@ -18,7 +18,7 @@
     <!-- 评论列表 -->
     <div class="comment-list">
       <div class="comment-header">
-        <span class="comment-count">{{ momentList.length }} 条评论</span>
+        <span class="comment-count">{{ totalCommentCount }} 条评论</span>
       </div>
       
       <div v-if="momentList.length === 0" class="no-comment">
@@ -28,7 +28,7 @@
       <div v-for="moment in momentList" :key="moment.id" class="comment-item">
   <div class="comment-layout">
     <div class="avatar-container">
-      <el-avatar :size="40" :src="moment.userAvatar || moment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
+      <el-avatar :size="40" :src="moment.userAvatar || moment.avatar || 'http://192.168.10.135:9000/avatars/头像 (1750).png'"></el-avatar>
     </div>
     <div class="comment-right">
       <div class="username">{{ moment.userName }}</div>
@@ -45,7 +45,7 @@
   <div v-for="comment in flattenComments(moment.comments)" :key="comment.id" class="reply-item">
     <div class="comment-layout">
       <div class="avatar-container">
-        <el-avatar :size="30" :src="comment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
+        <el-avatar :size="30" :src="comment.avatar || 'http://192.168.10.135:9000/avatars/头像 (1750).png'"></el-avatar>
       </div>
       <div class="comment-right">
         <div class="username">
@@ -99,8 +99,8 @@
   </div>
 </template>
 
-<script >
-import { ref, onMounted, defineComponent } from 'vue';
+<script>
+import { ref, onMounted, defineComponent, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import axios from '@/axios';
 import { useUserStore } from '@/stores/user';
@@ -159,7 +159,7 @@ const CommentTreeItem = defineComponent({
   },
   template: `
     <div class="reply-user">
-      <el-avatar :size="30" :src="comment.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'"></el-avatar>
+      <el-avatar :size="30" :src="comment.avatar || 'http://192.168.10.135:9000/avatars/头像 (1750).png'"></el-avatar>
       <div class="user-info">
         <div class="username">
           {{ comment.userName || '用户' }} 
@@ -205,6 +205,20 @@ export default {
     const activeReplyId = ref(null);
     const activeReplyType = ref(null); // 'moment' 或 'comment'
     const targetComment = ref(null); // 回复的目标评论
+
+    // 计算总评论数（moment + 所有回复）
+    const totalCommentCount = computed(() => {
+      let count = momentList.value.length;
+      
+      // 遍历所有moment，计算其下的评论数
+      momentList.value.forEach(moment => {
+        if (moment.comments && moment.comments.length > 0) {
+          count += flattenComments(moment.comments).length;
+        }
+      });
+      
+      return count;
+    });
 
     // 获取视频下的所有一级评论（moments）
     const getMoments = async () => {
@@ -423,7 +437,8 @@ const submitComment = async (momentId) => {
       handleReplyToComment,
       cancelReply,
       formatTime,
-      flattenComments
+      flattenComments,
+      totalCommentCount
     };
   }
 }
