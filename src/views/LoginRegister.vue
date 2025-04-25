@@ -38,11 +38,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { ElForm, ElTabPane, ElTabs, ElInput, ElButton, ElFormItem, ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
+import { el } from 'element-plus/es/locales.mjs'
 const router = useRouter()
 const userStore = useUserStore()
 
@@ -95,6 +96,15 @@ const switchTab = (tab: 'login' | 'register') => {
   activeTab.value = tab
   form.value = { userName: '', password: '' } // 重置表单
 }
+
+onMounted(() => {
+  if(activeTab.value === 'login') {
+    document.title = "登陆页面"
+  }
+  else{
+    document.title = "注册页面"
+  }
+})
 </script>
 
 <style scoped>

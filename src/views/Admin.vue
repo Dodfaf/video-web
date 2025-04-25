@@ -96,9 +96,9 @@
   } from 'element-plus'
   import axios from '@/axios'
   import NavBar from '@/components/NavBar.vue'
-  
+  import { useUserStore } from '@/stores/user'
   const router = useRouter()
-  
+  const userStore = useUserStore()
   // Tab 状态
   const activeTab = ref('pending')
   
@@ -249,8 +249,23 @@
     if (activeTab.value === 'pending') fetchPendingVideos()
     else fetchRejectedVideos()
   }
+
+  const ifAdmin = async()=>{
+  const response = await axios.get('/auth/user/isAdmin', { params:{
+      id: userStore.loginId
+     }
+  })
+  console.log(response.data)
+  if(response.data == false){
+    ElMessage.error('您不是管理员，无法进行此操作')
+    router.push('/login') // 跳转到登录页面
+  }
+}
+
+
   
   onMounted(() => {
+    ifAdmin()
     fetchPendingVideos() // 默认加载未审核视频
   })
   </script>

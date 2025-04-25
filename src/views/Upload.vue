@@ -153,7 +153,8 @@
   
     try {
       const response = await axios.post('http://localhost:5000/oss/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000 // 增加超时时间到 60 秒
       })
       if (response.data.success) {
         videoUrl.value = response.data.data

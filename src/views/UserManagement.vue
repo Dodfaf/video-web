@@ -145,7 +145,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import NavBar from '@/components/NavBar.vue'
 import axios from '@/axios'
+import { useUserStore } from '@/stores/user'
+  import { useRouter } from 'vue-router'
 
+  const router = useRouter()
+const userStore = useUserStore()
 // 用户列表数据
 const userList = ref([])
 const loading = ref(false)
@@ -267,7 +271,20 @@ const confirmChangeStatus = async () => {
   }
 }
 
+const ifAdmin = async()=>{
+  const response = await axios.get('/auth/user/isAdmin', { params:{
+      id: userStore.loginId
+     }
+  })
+  console.log(response.data)
+  if(response.data == false){
+    ElMessage.error('您不是管理员，无法进行此操作')
+    router.push('/login') // 跳转到登录页面
+  }
+}
+
 onMounted(() => {
+  ifAdmin()
   fetchUserList()
 })
 </script>

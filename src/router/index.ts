@@ -24,7 +24,7 @@ const routes = [
   { path: '/search', name: 'SearchResults', component: SearchResults },
   { path: '/collection', name: 'Collection', component: Collection },
   { path: '/profile', name: 'UserProfile', component: UserProfile },
-  { path: '/user-management', name: 'UserManagement', component: UserManagement }
+  { path: '/admin/user-management', name: 'UserManagement', component: UserManagement }
 ]
 
 const router = createRouter({

@@ -100,23 +100,50 @@ const fetchVideos = async (isLoadMore = false) => {
 
   loading.value = true
   try {
-    const params: any = { 
-      page: page.value, 
-      pageSize 
+    let response;
+    
+    // 根据是否选择分区调用不同的接口
+    if (selectedCategory.value === null) {
+      // 全部分区，使用原来的接口
+      const params = { 
+        page: page.value, 
+        pageSize 
+      }
+      response = await axios.get('/videodisplay/video/getHomePageVideoList', {
+        params: params
+      })
+    } else {
+      // 特定分区，使用新接口
+      response = await axios.post('/videodisplay/video/getVideosByCategory', {
+        categoryId: selectedCategory.value
+      })
+      console.log(response.data)
     }
     
-    // 如果选择了分区，添加分区ID参数
-    if (selectedCategory.value !== null) {
-      params.categoryId = selectedCategory.value
-    }
-    
-    const response = await axios.get('/videodisplay/video/getHomePageVideoList', {
-      params: params
-    })
     if (response.data.success) {
-      const newVideos = response.data.data
+      let newVideos;
+      
+      // 处理不同接口返回的数据结构
+      if (selectedCategory.value === null) {
+        // 原接口直接返回视频数组
+        newVideos = response.data.data;
+      } else {
+        // 新接口返回分页对象，需要取content字段
+        newVideos = response.data.data.content;
+      }
+      
       videoList.value = isLoadMore ? [...videoList.value, ...newVideos] : newVideos
-      hasMore.value = newVideos.length === pageSize
+      
+      // 判断是否还有更多数据
+      if (selectedCategory.value === null) {
+        // 原接口的判断逻辑
+        hasMore.value = newVideos.length === pageSize
+      } else {
+        // 新接口的判断逻辑
+        const pageInfo = response.data.data;
+        hasMore.value = !pageInfo.last;
+      }
+      
       if (hasMore.value) page.value++
     }
   } catch (error) {

@@ -59,8 +59,15 @@
   }
   
   // 跳转到上传页面
-  const goToUpload = () => {
-    router.push('/upload')
+  const goToUpload = async () => {
+    const response = await axios.post('/auth/user/getUserInfo', {
+      id: userStore.loginId
+    })
+    
+    if (response.data.success) {
+       response.data.data.status == 0 ? router.push('/upload') : ElMessage.error('您已被封禁，暂时无法使用该功能！')
+    } 
+  
   }
   
   // 处理搜索（待后端对接）

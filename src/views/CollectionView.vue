@@ -278,6 +278,7 @@ const removeFromFolder = async (recordId) => {
     })
     
     if (response.data.code === 200) {
+      console.log(response)
       ElMessage.success('移除视频成功')
       // 重新获取收藏夹详情
       if (folderDetail.value) {
