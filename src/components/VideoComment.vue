@@ -284,7 +284,12 @@ export default {
           ElMessage.success('评论发表成功');
           commentContent.value = '';
           getMoments(); // 重新获取评论列表
+        }        
+        if (response.data.code === 500) {
+          ElMessage.error('评论发表失败，内含敏感词！');
+      
         }
+        
       } catch (error) {
         console.error('发表评论失败:', error);
         if (error.response) {

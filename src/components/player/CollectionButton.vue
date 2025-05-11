@@ -6,8 +6,8 @@
       @click="handleCollectionAction"
       class="collection-button"
     >
-      <el-icon v-if="isCollected" class="collection-icon"><img :src="isCollected? '/src/assets/collection1.svg' : '/src/assets/collection.svg'" class="collection-icon"></el-icon>
-      <el-icon v-else class="collection-icon"></el-icon>
+      <el-icon v-if="isCollected" class="collection-icon"><img :src="'/src/assets/collection1.svg'" class="collection-icon"></el-icon>
+      <el-icon v-else class="collection-icon"><img src="/src/assets/collection.svg" class="collection-icon"></el-icon>
       <!-- {{ isCollected ? '已收藏' : '收藏' }}<StarFilled /> -->
     </el-button>
 
@@ -142,6 +142,7 @@ const getCollectionRecordId = async () => {
     
     if (response.data.code === 200 && response.data.data) {
       collectionRecordId.value = response.data.data.id
+      console.log('收藏记录ID:', collectionRecordId.value)
     }
   } catch (error) {
     console.error('获取收藏记录ID失败:', error)
@@ -162,7 +163,8 @@ const handleCollectionAction = () => {
 // 取消收藏
 const cancelCollection = async () => {
   if (!collectionRecordId.value) {
-    await getCollectionRecordId()
+     getCollectionRecordId()
+    console.log(collectionRecordId.value)
     if (!collectionRecordId.value) {
       ElMessage.error('获取收藏记录失败')
       return
@@ -170,11 +172,15 @@ const cancelCollection = async () => {
   }
   
   try {
-    const response = await axios.post('/videodisplay/videoCollection/cancelCollection', {
-      recordId: collectionRecordId.value,
-      userId: userStore.loginId
-    })
+    const response = await axios.get('/videodisplay/videoCollection/cancelCollection',{
+      params:{
+        recordId: collectionRecordId.value,
+        userId: userStore.loginId
+    }
+    }
+     )
     
+    // console.log(collectionRecordId.value)
     if (response.data.code === 200) {
       ElMessage.success('已取消收藏')
       isCollected.value = false

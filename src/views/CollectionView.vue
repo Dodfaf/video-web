@@ -96,11 +96,30 @@
         
         <div v-else class="video-list">
           <el-table :data="folderVideos" style="width: 100%">
-            <el-table-column label="视频ID" prop="videoId" width="100"></el-table-column>
+            <el-table-column label="封面" width="150">
+              <template #default="scope">
+                <el-image 
+                  :src="scope.row.coverUrl" 
+                  style="width: 120px; height: 70px; cursor: pointer"
+                  fit="cover"
+                  @click="goToVideo(scope.row.videoId)"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="标题" prop="videoTitle"></el-table-column>
+            <el-table-column label="时长" width="100">
+              <template #default="{ row }">
+                {{ formatDuration(row.duration) }}
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="120">
               <template #default="scope">
                 <el-button type="text" @click="goToVideo(scope.row.videoId)">观看</el-button>
-                <el-button type="text" class="delete-btn" @click="removeFromFolder(scope.row.id)">
+                <el-button 
+                  type="text" 
+                  class="delete-btn" 
+                  @click="removeFromFolder(scope.row.id)"
+                >
                   移除
                 </el-button>
               </template>
@@ -258,7 +277,7 @@ const viewFolderDetail = async (folderId) => {
       })
       
       if (videosResponse.data.code === 200) {
-        folderVideos.value = videosResponse.data.data.map(videoId => ({ videoId })) || []
+        folderVideos.value = videosResponse.data.data || []
       }
       
       detailDialogVisible.value = true
@@ -303,6 +322,13 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString()
 }
 
+// 格式化时长
+const formatDuration = (seconds) => {
+  if (!seconds) return '未知'
+  const minutes = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${minutes}:${secs < 10 ? '0' + secs : secs}`
+}
 onMounted(() => {
   getUserFolders()
 })
